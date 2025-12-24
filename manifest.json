@@ -23,7 +23,8 @@
         "128": "icon.png"
     },
     "permissions": [
-        "activeTab"
+        "activeTab",
+        "storage"
     ],
     "host_permissions": [
         "https://www.udemy.com/*",

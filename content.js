@@ -39,7 +39,7 @@ function sendError(status) {
 }
 
 // Main async function to process completions with delay
-async function processCompletions() {
+async function processCompletions(delayMs = 1000) {
     const acc = document.querySelectorAll('div.ud-accordion-panel-toggler');
 
     if (acc.length === 0) {
@@ -82,14 +82,20 @@ async function processCompletions() {
 
     sendProgress(0, total, `Found ${total} incomplete items (${alreadyCompleted} already done)...`);
 
-    // Click each unchecked checkbox with a 1 second delay
+    // Click each unchecked checkbox with the specified delay
     for (let i = 0; i < uncheckedLabels.length; i++) {
         uncheckedLabels[i].click();
         sendProgress(i + 1, total, `Completing item ${i + 1} of ${total}...`);
         
-        // Wait 1 second between each completion (except after the last one)
+        // After every 10 items, wait 5 seconds to prevent logout (except after the last item)
+        if ((i + 1) % 10 === 0 && i < uncheckedLabels.length - 1) {
+            sendProgress(i + 1, total, `Pausing 5s after batch of 10...`);
+            await delay(5000);
+        }
+        
+        // Wait for the specified delay between each completion (except after the last one)
         if (i < uncheckedLabels.length - 1) {
-            await delay(1000);
+            await delay(delayMs);
         }
     }
 
@@ -125,7 +131,9 @@ async function processCompletions() {
 
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
     if (message.msg === "start") {
-        processCompletions();
+        // Convert delay from seconds to milliseconds, default to 2000ms (2 seconds)
+        const delayMs = message.delay ? Math.round(message.delay * 1000) : 2000;
+        processCompletions(delayMs);
         sendResponse({ received: true });
     }
     return true; // Keep message channel open for async response

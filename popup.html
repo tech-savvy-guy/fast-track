@@ -254,6 +254,32 @@
             background: var(--border);
             margin: 16px 0;
         }
+
+        /* Delay input section */
+        .stat-value.editable {
+            cursor: pointer;
+            position: relative;
+            transition: opacity 0.15s ease;
+        }
+
+        .stat-value.editable:hover {
+            opacity: 0.7;
+        }
+
+        .stat-value input {
+            width: 100%;
+            border: none;
+            background: transparent;
+            font-family: inherit;
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            color: var(--geist-foreground);
+            text-align: center;
+            padding: 0;
+            margin: 0;
+            outline: none;
+        }
     </style>
     <script src="./popup.js"></script>
 </head>
@@ -276,7 +302,7 @@
             <div class="stats">
                 <div class="stat-item">
                     <span class="stat-label">Delay</span>
-                    <span class="stat-value">1s</span>
+                    <span class="stat-value editable" id="delay-display">2s</span>
                 </div>
                 <div class="stat-item">
                     <span class="stat-label">Status</span>

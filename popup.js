@@ -2,7 +2,16 @@
 
 console.log("Popup Script Fired!");
 
+const DEFAULT_DELAY = 2; // seconds
+
 function startExtension() {
+    // Load saved delay value
+    loadDelay();
+    
+    // Setup delay display click to edit
+    const delayDisplay = document.getElementById('delay-display');
+    delayDisplay.addEventListener('click', makeDelayEditable);
+    
     document.getElementById('start-btn').addEventListener('click', sendMsg);
     document.getElementById('reset-link').addEventListener('click', resetProgress);
     
@@ -14,6 +23,57 @@ function startExtension() {
             completeProgress(message.status);
         } else if (message.type === "error") {
             showError(message.status);
+        }
+    });
+}
+
+function loadDelay() {
+    chrome.storage.sync.get(['delay'], function(result) {
+        const delay = result.delay !== undefined ? result.delay : DEFAULT_DELAY;
+        const delayDisplay = document.getElementById('delay-display');
+        delayDisplay.textContent = delay + 's';
+        delayDisplay.dataset.delay = delay;
+    });
+}
+
+function makeDelayEditable() {
+    const delayDisplay = document.getElementById('delay-display');
+    const currentDelay = parseFloat(delayDisplay.dataset.delay) || DEFAULT_DELAY;
+    
+    // Create input element
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.min = '0.1';
+    input.max = '10';
+    input.step = '0.1';
+    input.value = currentDelay;
+    input.style.width = '100%';
+    
+    // Replace text with input
+    delayDisplay.textContent = '';
+    delayDisplay.appendChild(input);
+    input.focus();
+    input.select();
+    
+    // Handle save on blur or enter
+    const saveDelayValue = () => {
+        const delay = parseFloat(input.value) || DEFAULT_DELAY;
+        const clampedDelay = Math.max(0.1, Math.min(10, delay));
+        
+        chrome.storage.sync.set({ delay: clampedDelay }, function() {
+            delayDisplay.textContent = clampedDelay + 's';
+            delayDisplay.dataset.delay = clampedDelay;
+        });
+    };
+    
+    input.addEventListener('blur', saveDelayValue);
+    input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            input.blur();
+        } else if (e.key === 'Escape') {
+            delayDisplay.textContent = currentDelay + 's';
+            delayDisplay.dataset.delay = currentDelay;
         }
     });
 }
@@ -34,6 +94,10 @@ function sendMsg() {
     const btn = document.getElementById('start-btn');
     const statusValue = document.getElementById('status-value');
     const progressContainer = document.getElementById('progress-container');
+    const delayDisplay = document.getElementById('delay-display');
+    
+    // Get current delay value
+    const delay = parseFloat(delayDisplay.dataset.delay) || DEFAULT_DELAY;
     
     btn.disabled = true;
     btn.textContent = 'Processing...';
@@ -43,7 +107,7 @@ function sendMsg() {
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
         var activeTab = tabs[0];
         if (activeTab) {
-            chrome.tabs.sendMessage(activeTab.id, { msg: "start" }, function (response) {
+            chrome.tabs.sendMessage(activeTab.id, { msg: "start", delay: delay }, function (response) {
                 // Check for errors (e.g., content script not loaded)
                 if (chrome.runtime.lastError) {
                     console.log("Error:", chrome.runtime.lastError.message);
