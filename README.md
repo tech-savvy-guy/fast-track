@@ -4,6 +4,8 @@
 
 FastTrack is a Chrome extension that automates the completion of Udemy course lectures. It intelligently marks incomplete course content as completed with rate limiting to ensure smooth operation, making course navigation more convenient.
 
+![fast-track-preview-image](./preview.png)
+
 ## Features
 
 - **Automated Completion**: Automatically marks all incomplete course lectures as completed
@@ -20,7 +22,7 @@ To install this extension, follow these steps:
 
 1. Clone this repository to your local machine or download the ZIP file:
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/tech-savvy-guy/fast-track.git
    cd fast-track
    ```
 
