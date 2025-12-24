@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastTrack</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -ms-user-select: none;
+            -moz-user-select: none;
+            box-sizing: border-box;
+            -webkit-user-select: none;
+        }
+
+        :root {
+            --geist-foreground: #000;
+            --geist-background: #fff;
+            --accents-1: #fafafa;
+            --accents-2: #eaeaea;
+            --accents-3: #999;
+            --accents-4: #888;
+            --accents-5: #666;
+            --accents-6: #444;
+            --accents-7: #333;
+            --accents-8: #111;
+            --border: #eaeaea;
+            --success: #0070f3;
+            --error: #ee0000;
+        }
+
+        body {
+            font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--geist-background);
+            color: var(--geist-foreground);
+            width: 320px;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            padding: 20px 20px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .brand-icon {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .brand-icon svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .brand-name {
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            color: var(--geist-foreground);
+        }
+
+        .tagline {
+            font-size: 13px;
+            color: var(--accents-5);
+            line-height: 1.5;
+        }
+
+        /* Main content */
+        .content {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* Stats */
+        .stats {
+            display: flex;
+            gap: 12px;
+        }
+
+        .stat-item {
+            flex: 1;
+            padding: 12px;
+            background: var(--accents-1);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--accents-5);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 500;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            color: var(--geist-foreground);
+        }
+
+        /* Button */
+        .btn-primary {
+            width: 100%;
+            padding: 0 16px;
+            height: 40px;
+            border: 1px solid var(--geist-foreground);
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            background: var(--geist-foreground);
+            color: var(--geist-background);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--accents-8);
+            border-color: var(--accents-8);
+        }
+
+        .btn-primary:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+
+        .btn-primary:disabled {
+            background: var(--accents-2);
+            border-color: var(--accents-2);
+            color: var(--accents-4);
+            cursor: not-allowed;
+        }
+
+        /* Progress section */
+        .progress-section {
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .progress-section.active {
+            display: flex;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .progress-label {
+            font-size: 13px;
+            color: var(--accents-5);
+            font-weight: 500;
+        }
+
+        .progress-value {
+            font-size: 13px;
+            color: var(--geist-foreground);
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 4px;
+            background: var(--accents-2);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: var(--geist-foreground);
+            border-radius: 2px;
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .progress-status {
+            font-size: 12px;
+            color: var(--accents-5);
+            min-height: 16px;
+        }
+
+        .progress-status.success {
+            color: var(--success);
+        }
+
+        .progress-status.error {
+            color: var(--error);
+        }
+
+        /* Footer */
+        .footer {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border);
+            font-size: 11px;
+            color: var(--accents-5);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .footer-link {
+            color: var(--geist-foreground);
+            text-decoration: none;
+            font-weight: 500;
+            transition: opacity 0.15s;
+        }
+
+        .footer-link:hover {
+            opacity: 0.7;
+        }
+
+        /* Divider */
+        .divider {
+            height: 1px;
+            background: var(--border);
+            margin: 16px 0;
+        }
+    </style>
+    <script src="./popup.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="brand">
+                <div class="brand-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                    </svg>
+                </div>
+                <span class="brand-name">FastTrack</span>
+            </div>
+            <p class="tagline">Mark all course lectures as complete with rate limiting</p>
+        </div>
+
+        <div class="content">
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-label">Delay</span>
+                    <span class="stat-value">1s</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Status</span>
+                    <span class="stat-value" id="status-value">Ready</span>
+                </div>
+            </div>
+
+            <button class="btn-primary" id="start-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                </svg>
+                Start Completion
+            </button>
+
+            <div class="progress-section" id="progress-container">
+                <div class="progress-header">
+                    <span class="progress-label">Progress</span>
+                    <span class="progress-value" id="progress-percent">0%</span>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="progress-bar"></div>
+                </div>
+                <p class="progress-status" id="progress-status">Initializing...</p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <span>For Udemy courses</span>
+            <a href="#" class="footer-link" id="reset-link">Reset</a>
+        </div>
+    </div>
+</body>
+
+</html>
