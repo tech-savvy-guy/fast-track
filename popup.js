@@ -3,16 +3,23 @@
 console.log("Popup Script Fired!");
 
 const DEFAULT_DELAY = 2; // seconds
+let currentState = "ready"; // ready, running, paused, stopped, completed
 
 function startExtension() {
     // Load saved delay value
     loadDelay();
     
+    // Initialize UI state
+    updateUIState("ready");
+    
     // Setup delay display click to edit
     const delayDisplay = document.getElementById('delay-display');
     delayDisplay.addEventListener('click', makeDelayEditable);
     
-    document.getElementById('start-btn').addEventListener('click', sendMsg);
+    document.getElementById('start-btn').addEventListener('click', handleStartClick);
+    document.getElementById('pause-btn').addEventListener('click', handlePauseClick);
+    document.getElementById('resume-btn').addEventListener('click', handleResumeClick);
+    document.getElementById('stop-btn').addEventListener('click', handleStopClick);
     document.getElementById('reset-link').addEventListener('click', resetProgress);
     
     // Listen for progress updates from content script
@@ -23,6 +30,8 @@ function startExtension() {
             completeProgress(message.status);
         } else if (message.type === "error") {
             showError(message.status);
+        } else if (message.type === "state") {
+            updateState(message.state);
         }
     });
 }
@@ -80,29 +89,133 @@ function makeDelayEditable() {
 
 function resetProgress(e) {
     e.preventDefault();
-    const btn = document.getElementById('start-btn');
+    // Send stop message to content script if running
+    if (currentState === "running" || currentState === "paused") {
+        chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+            var activeTab = tabs[0];
+            if (activeTab) {
+                chrome.tabs.sendMessage(activeTab.id, { msg: "stop" });
+            }
+        });
+    }
+    
+    updateUIState("ready");
+}
+
+function updateState(state) {
+    currentState = state;
+    updateUIState(state);
+}
+
+function updateUIState(state) {
+    currentState = state;
+    const startBtn = document.getElementById('start-btn');
+    const pauseBtn = document.getElementById('pause-btn');
+    const resumeBtn = document.getElementById('resume-btn');
+    const stopBtn = document.getElementById('stop-btn');
+    const controlButtons = document.getElementById('control-buttons');
     const statusValue = document.getElementById('status-value');
     const progressContainer = document.getElementById('progress-container');
     
-    btn.disabled = false;
-    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> Start Completion';
-    statusValue.textContent = 'Ready';
-    progressContainer.classList.remove('active');
+    // Hide all buttons first
+    startBtn.style.display = 'none';
+    controlButtons.style.display = 'none';
+    pauseBtn.style.display = 'none';
+    resumeBtn.style.display = 'none';
+    stopBtn.style.display = 'none';
+    
+    if (state === "ready") {
+        startBtn.style.display = 'flex';
+        startBtn.disabled = false;
+        statusValue.textContent = 'Ready';
+        progressContainer.classList.remove('active');
+    } else if (state === "running") {
+        controlButtons.style.display = 'flex';
+        pauseBtn.style.display = 'flex';
+        stopBtn.style.display = 'flex';
+        statusValue.textContent = 'Running';
+        progressContainer.classList.add('active');
+    } else if (state === "paused") {
+        controlButtons.style.display = 'flex';
+        resumeBtn.style.display = 'flex';
+        stopBtn.style.display = 'flex';
+        statusValue.textContent = 'Paused';
+        progressContainer.classList.add('active');
+    } else if (state === "stopped") {
+        startBtn.style.display = 'flex';
+        startBtn.disabled = false;
+        statusValue.textContent = 'Stopped';
+        progressContainer.classList.add('active');
+    } else if (state === "completed") {
+        startBtn.style.display = 'flex';
+        startBtn.disabled = false;
+        statusValue.textContent = 'Done';
+        progressContainer.classList.add('active');
+    }
+}
+
+function handleStartClick() {
+    sendMsg();
+}
+
+function handlePauseClick() {
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+        var activeTab = tabs[0];
+        if (activeTab) {
+            chrome.tabs.sendMessage(activeTab.id, { msg: "pause" }, function (response) {
+                if (chrome.runtime.lastError) {
+                    console.log("Error:", chrome.runtime.lastError.message);
+                    return;
+                }
+                if (response && response.received) {
+                    updateUIState("paused");
+                }
+            });
+        }
+    });
+}
+
+function handleResumeClick() {
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+        var activeTab = tabs[0];
+        if (activeTab) {
+            chrome.tabs.sendMessage(activeTab.id, { msg: "resume" }, function (response) {
+                if (chrome.runtime.lastError) {
+                    console.log("Error:", chrome.runtime.lastError.message);
+                    return;
+                }
+                if (response && response.received) {
+                    updateUIState("running");
+                }
+            });
+        }
+    });
+}
+
+function handleStopClick() {
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+        var activeTab = tabs[0];
+        if (activeTab) {
+            chrome.tabs.sendMessage(activeTab.id, { msg: "stop" }, function (response) {
+                if (chrome.runtime.lastError) {
+                    console.log("Error:", chrome.runtime.lastError.message);
+                    return;
+                }
+                if (response && response.received) {
+                    updateUIState("stopped");
+                }
+            });
+        }
+    });
 }
 
 function sendMsg() {
-    const btn = document.getElementById('start-btn');
-    const statusValue = document.getElementById('status-value');
-    const progressContainer = document.getElementById('progress-container');
     const delayDisplay = document.getElementById('delay-display');
     
     // Get current delay value
     const delay = parseFloat(delayDisplay.dataset.delay) || DEFAULT_DELAY;
     
-    btn.disabled = true;
-    btn.textContent = 'Processing...';
-    statusValue.textContent = 'Running';
-    progressContainer.classList.add('active');
+    updateUIState("running");
     
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
         var activeTab = tabs[0];
@@ -135,8 +248,6 @@ function updateProgress(current, total, status) {
 }
 
 function completeProgress(status) {
-    const btn = document.getElementById('start-btn');
-    const statusValue = document.getElementById('status-value');
     const progressBar = document.getElementById('progress-bar');
     const progressPercent = document.getElementById('progress-percent');
     const progressStatus = document.getElementById('progress-status');
@@ -145,24 +256,19 @@ function completeProgress(status) {
     progressPercent.textContent = '100%';
     progressStatus.textContent = status || 'Completed!';
     progressStatus.className = 'progress-status success';
-    statusValue.textContent = 'Done';
     
-    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Complete';
+    updateUIState("completed");
 }
 
 function showError(status) {
-    const btn = document.getElementById('start-btn');
-    const statusValue = document.getElementById('status-value');
     const progressContainer = document.getElementById('progress-container');
     const progressStatus = document.getElementById('progress-status');
     
     progressContainer.classList.add('active');
     progressStatus.textContent = status || 'Error occurred';
     progressStatus.className = 'progress-status error';
-    statusValue.textContent = 'Error';
     
-    btn.disabled = false;
-    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> Start Completion';
+    updateUIState("ready");
 }
 
 document.addEventListener("DOMContentLoaded", startExtension);

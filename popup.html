@@ -166,6 +166,11 @@
             cursor: not-allowed;
         }
 
+        #control-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
         /* Progress section */
         .progress-section {
             display: none;
@@ -289,9 +294,7 @@
         <div class="header">
             <div class="brand">
                 <div class="brand-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-                    </svg>
+                    <img src="./target-icon.svg" alt="FastTrack icon" style="width: 20px; height: 20px;">
                 </div>
                 <span class="brand-name">FastTrack</span>
             </div>
@@ -316,6 +319,28 @@
                 </svg>
                 Start Completion
             </button>
+
+            <div style="display: none;" id="control-buttons">
+                <button class="btn-primary" id="pause-btn" style="flex: 1;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="6" y="4" width="4" height="16"></rect>
+                        <rect x="14" y="4" width="4" height="16"></rect>
+                    </svg>
+                    Pause
+                </button>
+                <button class="btn-primary" id="resume-btn" style="flex: 1;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                    </svg>
+                    Resume
+                </button>
+                <button class="btn-primary" id="stop-btn" style="flex: 1;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="6" y="6" width="12" height="12"></rect>
+                    </svg>
+                    Stop
+                </button>
+            </div>
 
             <div class="progress-section" id="progress-container">
                 <div class="progress-header">
